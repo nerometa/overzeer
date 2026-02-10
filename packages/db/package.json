@@ -1,0 +1,35 @@
+{
+  "name": "@overzeer/db",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "db:local": "turso dev --db-file local.db",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "bun run src/seed.ts",
+    "db:reset": "rm -f ../../local.db && drizzle-kit push && bun run src/seed.ts"
+  },
+  "dependencies": {
+    "@libsql/client": "catalog:",
+    "@overzeer/env": "workspace:*",
+    "@paralleldrive/cuid2": "^3.3.0",
+    "dotenv": "catalog:",
+    "drizzle-orm": "^0.45.1",
+    "libsql": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@overzeer/config": "workspace:*",
+    "drizzle-kit": "^0.31.8",
+    "typescript": "catalog:"
+  }
+}
