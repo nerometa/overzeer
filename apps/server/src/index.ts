@@ -6,7 +6,7 @@ import { env } from "@overzeer/env/server";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { Elysia } from "elysia";
 
-const app = new Elysia()
+export const app = new Elysia()
   .use(
     cors({
       origin: env.CORS_ORIGIN,
@@ -15,6 +15,13 @@ const app = new Elysia()
       credentials: true,
     }),
   )
+  .onBeforeHandle(({ set }) => {
+    set.headers["X-Content-Type-Options"] = "nosniff";
+    set.headers["X-Frame-Options"] = "DENY";
+    set.headers["X-XSS-Protection"] = "0";
+    set.headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    set.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+  })
   .all("/api/auth/*", async (context) => {
     const { request, status } = context;
     if (["POST", "GET"].includes(request.method)) {
