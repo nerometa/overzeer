@@ -1,8 +1,17 @@
 "use client";
 
 import { format } from "date-fns";
+import { MoreHorizontalIcon, PenIcon, TrashIcon } from "lucide-react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -27,9 +36,13 @@ export type SaleRow = {
 export default function SalesTable({
   rows,
   compact = false,
+  editHref,
+  onDelete,
 }: {
   rows: SaleRow[];
   compact?: boolean;
+  editHref?: (sale: SaleRow) => string;
+  onDelete?: (saleId: string) => void;
 }) {
   return (
     <Table>
@@ -40,6 +53,7 @@ export default function SalesTable({
           <TableHead>Type</TableHead>
           <TableHead className="text-right">Qty</TableHead>
           <TableHead className="text-right">Gross</TableHead>
+          {(editHref || onDelete) && <TableHead className="w-[50px]"></TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -52,31 +66,105 @@ export default function SalesTable({
           const gross = s.quantity * s.pricePerTicket + (s.fees ?? 0);
           const pName = s.platform?.name ?? "Manual";
           const pColor = platformColor(pName, s.platform?.colorHex);
+          const href = editHref?.(s);
 
           return (
-            <TableRow key={s.id}>
+            <TableRow key={s.id} className={href ? "cursor-pointer" : undefined}>
               <TableCell className="text-muted-foreground">
-                {d ? format(d, compact ? "MMM d" : "PPP") : "—"}
+                {href ? (
+                  <Link href={href as any} className="block">
+                    {d ? format(d, compact ? "MMM d" : "PPP") : "—"}
+                  </Link>
+                ) : (
+                  d ? format(d, compact ? "MMM d" : "PPP") : "—"
+                )}
               </TableCell>
               <TableCell>
-                <Badge
-                  variant="secondary"
-                  className="rounded-none"
-                  style={{ borderColor: pColor }}
-                >
-                  <span className="mr-2 inline-block size-2.5 rounded-none" style={{ backgroundColor: pColor }} />
-                  {pName}
-                </Badge>
+                {href ? (
+                  <Link href={href as any} className="block">
+                    <Badge
+                      variant="secondary"
+                      className="rounded-none"
+                      style={{ borderColor: pColor }}
+                    >
+                      <span className="mr-2 inline-block size-2.5 rounded-none" style={{ backgroundColor: pColor }} />
+                      {pName}
+                    </Badge>
+                  </Link>
+                ) : (
+                  <Badge
+                    variant="secondary"
+                    className="rounded-none"
+                    style={{ borderColor: pColor }}
+                  >
+                    <span className="mr-2 inline-block size-2.5 rounded-none" style={{ backgroundColor: pColor }} />
+                    {pName}
+                  </Badge>
+                )}
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {s.ticketType ? s.ticketType : "—"}
+                {href ? (
+                  <Link href={href as any} className="block">
+                    {s.ticketType ? s.ticketType : "—"}
+                  </Link>
+                ) : (
+                  s.ticketType ? s.ticketType : "—"
+                )}
               </TableCell>
               <TableCell className="text-right tabular-nums">
-                {formatNumber(s.quantity)}
+                {href ? (
+                  <Link href={href as any} className="block">
+                    {formatNumber(s.quantity)}
+                  </Link>
+                ) : (
+                  formatNumber(s.quantity)
+                )}
               </TableCell>
               <TableCell className="text-right tabular-nums">
-                {formatCurrency(gross)}
+                {href ? (
+                  <Link href={href as any} className="block">
+                    {formatCurrency(gross)}
+                  </Link>
+                ) : (
+                  formatCurrency(gross)
+                )}
               </TableCell>
+              {(editHref || onDelete) && (
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <button 
+                        className="p-1 hover:bg-accent rounded-none"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontalIcon className="h-4 w-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {editHref && (
+                        <DropdownMenuItem onClick={() => {}}>
+                          <Link href={editHref(s) as any} className="flex items-center w-full">
+                            <PenIcon className="mr-2 h-4 w-4" />
+                            Edit
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      {onDelete && editHref && <DropdownMenuSeparator />}
+                      {onDelete && (
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => onDelete(s.id)}
+                        >
+			  <span className="inline-flex items-center w-full">
+                            <TrashIcon className="mr-2 h-4 w-4" />
+                            Delete
+			  </span>
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              )}
             </TableRow>
           );
         })}
