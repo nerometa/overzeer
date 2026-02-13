@@ -106,6 +106,95 @@ DATABASE_URL=file:../../local.db
 NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 ```
 
+## Features
+
+- **Event Management**: Create and manage events with date, venue, and capacity
+- **Multi-Platform Sales Tracking**: Aggregate sales from Megatix, Ticketmelon, Resident Advisor, and manual at-door entries
+- **Real-time Analytics**: Revenue trends, platform breakdown, sales velocity, and projections
+- **Manual Sale Entry**: Easy-to-use form for entering door sales with platform selection, ticket types, and fee calculation
+- **Sales Editing**: Click any sale to edit details or delete entries
+- **CSV Export**: Export event sales data for accounting or reporting
+- **Responsive Design**: Works on desktop and mobile devices
+- **Dark Mode**: Full dark mode support with CSS variables
+
+## Testing
+
+```bash
+# Run all tests
+bun test
+
+# Run E2E tests
+bun run test:e2e
+
+# Run E2E tests with UI
+bun run test:e2e:ui
+```
+
+## Deployment
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+
+### Quick Deploy (Vercel)
+
+```bash
+# Install Vercel CLI
+bun add -g vercel
+
+# Deploy frontend
+cd apps/web
+vercel
+
+# Deploy backend
+cd apps/server
+vercel
+```
+
+## Architecture
+
+### Type Safety
+
+This project uses **tRPC** for end-to-end type safety between frontend and backend. No API contract files needed - TypeScript types are shared automatically.
+
+```typescript
+// Frontend calls backend with full type safety
+const { data: events } = trpc.events.list.useQuery();
+// TypeScript knows the exact shape of 'events'
+```
+
+### Monorepo Structure
+
+- **Turborepo** manages the build pipeline with intelligent caching
+- **Bun** provides fast package installation and script execution
+- **Workspace** packages allow code sharing between apps
+
+### Performance
+
+- Bun runtime: 3x faster than Node.js for package installation and tests
+- Next.js 15: React Server Components and streaming SSR
+- tRPC batching: Multiple requests in a single HTTP call
+- Optimistic UI: Instant feedback for mutations
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feat/new-feature`
+3. Commit changes: `git commit -am 'feat: add new feature'`
+4. Push to branch: `git push origin feat/new-feature`
+5. Submit a pull request
+
+## Roadmap
+
+- [x] Event management
+- [x] Sales tracking (manual + platforms)
+- [x] Analytics dashboard
+- [x] Sales editing and deletion
+- [x] CSV export
+- [x] E2E tests
+- [ ] Real API integrations (Megatix, Ticketmelon, RA)
+- [ ] Email notifications
+- [ ] Multi-user support with roles
+- [ ] Mobile app
+
 ## License
 
 MIT
