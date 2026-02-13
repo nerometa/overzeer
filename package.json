@@ -35,7 +35,7 @@
     "db:local": "turbo -F @overzeer/db db:local",
     "db:seed": "turbo -F @overzeer/db db:seed",
     "db:reset": "turbo -F @overzeer/db db:reset",
-    "test": "bun test --cwd packages/api",
+    "test": "cd packages/api && bun test",
     "test:e2e": "cd apps/web && bun run test:e2e"
   },
   "dependencies": {
