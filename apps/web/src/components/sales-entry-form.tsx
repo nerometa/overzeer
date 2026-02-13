@@ -142,26 +142,72 @@ export default function SalesEntryForm({ eventId, sale, onDelete }: SalesEntryFo
       pricePerTicket: number;
       fees?: number;
     }) => trpcClient.sales.update.mutate(input),
-    onSuccess: async () => {
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: trpc.sales.byEvent.queryKey({ eventId }) });
+      const previousSales = queryClient.getQueryData(trpc.sales.byEvent.queryKey({ eventId }));
+      const platform = platforms.data?.find((p) => p.id === input.platformId);
+      queryClient.setQueryData(trpc.sales.byEvent.queryKey({ eventId }), (old) =>
+        old?.map((s) =>
+          s.id === input.id
+            ? ({
+                ...s,
+                platformId: input.platformId ?? null,
+                platform: platform
+                  ? { ...platform }
+                  : null,
+                ticketType: input.ticketType ?? null,
+                quantity: input.quantity,
+                pricePerTicket: input.pricePerTicket,
+                fees: input.fees ?? null,
+              } as typeof s)
+            : s,
+        ),
+      );
+      return { previousSales };
+    },
+    onError: (err, input, context) => {
+      if (context?.previousSales) {
+        queryClient.setQueryData(trpc.sales.byEvent.queryKey({ eventId }), context.previousSales);
+      }
+      toast.error(err.message);
+    },
+    onSettled: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: trpc.sales.byEvent.queryKey({ eventId }) }),
         queryClient.invalidateQueries({ queryKey: trpc.events.byId.queryKey({ id: eventId }) }),
         queryClient.invalidateQueries({ queryKey: trpc.dashboard.overview.queryKey() }),
       ]);
+    },
+    onSuccess: () => {
       toast.success("Sale updated");
       router.push(`/events/${eventId}`);
     },
-    onError: (e) => toast.error(e.message),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (saleId: string) => trpcClient.sales.delete.mutate({ id: saleId }),
-    onSuccess: async () => {
+    onMutate: async (saleId) => {
+      await queryClient.cancelQueries({ queryKey: trpc.sales.byEvent.queryKey({ eventId }) });
+      const previousSales = queryClient.getQueryData(trpc.sales.byEvent.queryKey({ eventId }));
+      queryClient.setQueryData(trpc.sales.byEvent.queryKey({ eventId }), (old) =>
+        old?.filter((s) => s.id !== saleId),
+      );
+      return { previousSales };
+    },
+    onError: (err, saleId, context) => {
+      if (context?.previousSales) {
+        queryClient.setQueryData(trpc.sales.byEvent.queryKey({ eventId }), context.previousSales);
+      }
+      toast.error(err.message);
+    },
+    onSettled: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: trpc.sales.byEvent.queryKey({ eventId }) }),
         queryClient.invalidateQueries({ queryKey: trpc.events.byId.queryKey({ id: eventId }) }),
         queryClient.invalidateQueries({ queryKey: trpc.dashboard.overview.queryKey() }),
       ]);
+    },
+    onSuccess: () => {
       toast.success("Sale deleted");
       if (onDelete) {
         onDelete();
@@ -169,7 +215,6 @@ export default function SalesEntryForm({ eventId, sale, onDelete }: SalesEntryFo
         router.push(`/events/${eventId}`);
       }
     },
-    onError: (e) => toast.error(e.message),
   });
 
   const platformFeeMap = useMemo(() => {

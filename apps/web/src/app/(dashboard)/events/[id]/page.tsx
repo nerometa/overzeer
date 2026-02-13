@@ -20,7 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatNumber } from "@/lib/format";
 import { trpc, trpcClient, queryClient } from "@/utils/trpc";
 
-import { Edit3Icon, PlusIcon, SparklesIcon } from "lucide-react";
+import { Edit3Icon, PlusIcon, SparklesIcon, DownloadIcon } from "lucide-react";
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -33,21 +33,66 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
   const deleteMutation = useMutation({
     mutationFn: (saleId: string) => trpcClient.sales.delete.mutate({ id: saleId }),
-    onSuccess: async () => {
+    onMutate: async (saleId) => {
+      await queryClient.cancelQueries({ queryKey: trpc.sales.byEvent.queryKey({ eventId: id }) });
+      const previousSales = queryClient.getQueryData(trpc.sales.byEvent.queryKey({ eventId: id }));
+      queryClient.setQueryData(trpc.sales.byEvent.queryKey({ eventId: id }), (old) =>
+        old?.filter((s) => s.id !== saleId)
+      );
+      return { previousSales };
+    },
+    onError: (err, saleId, context) => {
+      if (context?.previousSales) {
+        queryClient.setQueryData(trpc.sales.byEvent.queryKey({ eventId: id }), context.previousSales);
+      }
+      toast.error(err.message);
+    },
+    onSettled: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: trpc.sales.byEvent.queryKey({ eventId: id }) }),
         queryClient.invalidateQueries({ queryKey: trpc.events.byId.queryKey({ id }) }),
         queryClient.invalidateQueries({ queryKey: trpc.dashboard.overview.queryKey() }),
       ]);
+    },
+    onSuccess: () => {
       toast.success("Sale deleted");
     },
-    onError: (e) => toast.error(e.message),
   });
 
   const handleDeleteSale = (saleId: string) => {
     if (confirm("Are you sure you want to delete this sale?")) {
       deleteMutation.mutate(saleId);
     }
+  };
+
+  const handleExportCSV = () => {
+    if (!sales.data || sales.data.length === 0) {
+      toast.error("No sales data to export");
+      return;
+    }
+
+    const headers = ["Date", "Platform", "Ticket Type", "Quantity", "Price per Ticket", "Fees", "Gross"];
+    const rows = sales.data.map((s) => {
+      const date = s.saleDate ? format(new Date(s.saleDate), "yyyy-MM-dd") : "";
+      const platform = s.platform?.name ?? "Manual";
+      const ticketType = s.ticketType ?? "";
+      const quantity = s.quantity;
+      const price = s.pricePerTicket;
+      const fees = s.fees ?? 0;
+      const gross = quantity * price + fees;
+      return [date, platform, ticketType, quantity, price, fees, gross];
+    });
+
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${event.data?.name ?? "event"}-sales.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Sales exported to CSV");
   };
 
   const title = event.data?.name ?? "Event";
@@ -187,11 +232,22 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <div>
                 <CardTitle className="text-sm">Sales</CardTitle>
                 <div className="mt-1 text-xs text-muted-foreground">Raw sales entries for this event.</div>
-              </div>
-              <Button asChild variant="outline" className="rounded-none">
-                <Link href={`/events/${id}/sales/new`}>Add manual sale</Link>
-              </Button>
-            </CardHeader>
+               </div>
+               <div className="flex items-center gap-2">
+                 <Button
+                   variant="outline"
+                   className="rounded-none"
+                   onClick={handleExportCSV}
+                   disabled={!sales.data || sales.data.length === 0}
+                 >
+                   <DownloadIcon className="mr-2 size-4" />
+                   Export CSV
+                 </Button>
+                 <Button asChild variant="outline" className="rounded-none">
+                   <Link href={`/events/${id}/sales/new`}>Add manual sale</Link>
+                 </Button>
+               </div>
+             </CardHeader>
             <CardContent>
               {sales.isLoading ? (
                 <Skeleton className="h-28 rounded-none" />
