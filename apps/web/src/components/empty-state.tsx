@@ -27,7 +27,7 @@ export default function EmptyState({
           {action ? (
             <div className="mt-4">
               <Button asChild className="rounded-none">
-                <Link href={action.href}>{action.label}</Link>
+                <Link href={action.href as any}>{action.label}</Link>
               </Button>
             </div>
           ) : null}

@@ -56,16 +56,17 @@ export default function Sidebar({
                 "text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground";
               const disabledCls = "opacity-50 pointer-events-none";
 
+              const isDisabled = (item as any).disabled;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  aria-disabled={item.disabled}
-                  className={cn(base, active ? activeCls : idleCls, item.disabled && disabledCls)}
+                  aria-disabled={isDisabled}
+                  className={cn(base, active ? activeCls : idleCls, isDisabled && disabledCls)}
                 >
                   <Icon className="size-4" />
                   <span className="flex-1">{item.label}</span>
-                  {item.disabled ? (
+                  {isDisabled ? (
                     <span className="text-[10px] uppercase tracking-wider text-sidebar-foreground/50">
                       soon
                     </span>

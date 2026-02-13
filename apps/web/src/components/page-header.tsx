@@ -41,7 +41,7 @@ export default function PageHeader({
                     {last || !c.href ? (
                       <BreadcrumbPage>{c.label}</BreadcrumbPage>
                     ) : (
-                      <BreadcrumbLink render={<Link href={c.href} />}>{c.label}</BreadcrumbLink>
+                      <BreadcrumbLink render={<Link href={c.href as any} />}>{c.label}</BreadcrumbLink>
                     )}
                   </BreadcrumbItem>
                   {!last ? <BreadcrumbSeparator /> : null}
