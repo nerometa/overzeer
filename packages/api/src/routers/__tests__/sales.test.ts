@@ -8,7 +8,7 @@ type Session = NonNullable<Context["session"]>;
 
 function ensureTestEnv() {
   process.env.NODE_ENV ??= "test";
-  process.env.DATABASE_URL ??= "file:../../local.db";
+  process.env.DATABASE_URL ??= "file:/home/vergil/codevault/overzeer/local.db";
   process.env.BETTER_AUTH_SECRET ??= "x".repeat(32);
   process.env.BETTER_AUTH_URL ??= "https://example.com";
   process.env.CORS_ORIGIN ??= "https://example.com";
