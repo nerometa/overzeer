@@ -23,8 +23,22 @@ jobs:
       - name: Type check
         run: bun run check-types
 
+      - name: Setup test database
+        run: bun run db:push && bun run db:seed
+        env:
+          DATABASE_URL: file:./local.db
+          BETTER_AUTH_SECRET: test-secret-that-is-at-least-32-chars-long
+          BETTER_AUTH_URL: http://localhost:3000
+          CORS_ORIGIN: http://localhost:3001
+          NODE_ENV: test
+
       - name: Run tests
-        run: bun test
+        run: bun run test
+        env:
+          BETTER_AUTH_SECRET: test-secret-that-is-at-least-32-chars-long
+          BETTER_AUTH_URL: http://localhost:3000
+          CORS_ORIGIN: http://localhost:3001
+          NODE_ENV: test
 
   build:
     runs-on: ubuntu-latest

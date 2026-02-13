@@ -1,10 +1,13 @@
+import { resolve } from "node:path";
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
 import { TRPCError } from "@trpc/server";
 import { eq, and, gte, desc } from "drizzle-orm";
 
+const REPO_ROOT = resolve(import.meta.dir, "../../../../..");
+
 function ensureTestEnv() {
   process.env.NODE_ENV ??= "test";
-  process.env.DATABASE_URL ??= "file:/home/vergil/codevault/overzeer/local.db";
+  process.env.DATABASE_URL ??= `file:${resolve(REPO_ROOT, "local.db")}`;
   process.env.BETTER_AUTH_SECRET ??= "x".repeat(32);
   process.env.BETTER_AUTH_URL ??= "https://example.com";
   process.env.CORS_ORIGIN ??= "https://example.com";
