@@ -15,6 +15,10 @@ import { formatNumber } from "@/lib/format";
 
 type Point = { date: string; ticketsSold: number };
 
+const LABEL_MAP: Record<string, string> = {
+  ticketsSold: "Tickets Sold",
+};
+
 export default function SalesVelocityChart({
   title = "Sales velocity",
   data,
@@ -37,12 +41,21 @@ export default function SalesVelocityChart({
             tickFormatter={(v) => (typeof v === "number" ? formatNumber(v) : String(v))}
           />
           <Tooltip
-            formatter={(v) => (typeof v === "number" ? formatNumber(v) : String(v))}
+            formatter={(v: unknown, name?: string) => [
+              typeof v === "number" ? formatNumber(v) : String(v),
+              name ? (LABEL_MAP[name] ?? name) : "",
+            ]}
+            labelFormatter={(label) => `Date: ${String(label)}`}
+            labelStyle={{ color: "hsl(var(--popover-foreground))" }}
             contentStyle={{
               background: "hsl(var(--popover))",
               borderColor: "hsl(var(--border))",
               borderRadius: 0,
               fontSize: 12,
+              color: "hsl(var(--popover-foreground))",
+            }}
+            itemStyle={{
+              color: "hsl(var(--popover-foreground))",
             }}
           />
           <Bar dataKey="ticketsSold" fill="hsl(var(--chart-1))" radius={0} />

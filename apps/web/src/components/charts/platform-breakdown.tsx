@@ -19,34 +19,45 @@ export default function PlatformBreakdown({
 
   return (
     <ChartShell title={title} description="Revenue share by platform" right={<div className="text-xs text-muted-foreground">{formatCurrency(total)}</div>}>
-      <div className="grid h-full grid-cols-1 items-center gap-4 md:grid-cols-[1fr_180px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Tooltip
-              formatter={(v) => (typeof v === "number" ? formatCurrency(v) : String(v))}
-              contentStyle={{
-                background: "hsl(var(--popover))",
-                borderColor: "hsl(var(--border))",
-                borderRadius: 0,
-                fontSize: 12,
-              }}
-            />
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="name"
-              innerRadius={58}
-              outerRadius={86}
-              paddingAngle={2}
-              stroke="hsl(var(--background))"
-              strokeWidth={2}
-            >
-              {data.map((d) => (
-                <Cell key={d.name} fill={platformColor(d.name, d.colorHex)} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
+      <div className="flex h-full flex-col items-center gap-4 md:flex-row md:items-center md:justify-center">
+        <div className="h-[200px] w-[200px] shrink-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Tooltip
+                formatter={(v: unknown) =>
+                  typeof v === "number" ? formatCurrency(v) : String(v)
+                }
+                contentStyle={{
+                  background: "hsl(var(--popover))",
+                  borderColor: "hsl(var(--border))",
+                  borderRadius: 0,
+                  fontSize: 12,
+                  color: "hsl(var(--popover-foreground))",
+                }}
+                itemStyle={{
+                  color: "hsl(var(--popover-foreground))",
+                }}
+                labelStyle={{
+                  color: "hsl(var(--popover-foreground))",
+                }}
+              />
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={58}
+                outerRadius={86}
+                paddingAngle={2}
+                stroke="hsl(var(--background))"
+                strokeWidth={2}
+              >
+                {data.map((d) => (
+                  <Cell key={d.name} fill={platformColor(d.name, d.colorHex)} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
 
         <div className="space-y-2">
           {data

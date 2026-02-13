@@ -15,6 +15,10 @@ import { formatCurrency } from "@/lib/format";
 
 type Point = { date: string; projectedRevenue: number };
 
+const LABEL_MAP: Record<string, string> = {
+  projectedRevenue: "Projected Revenue",
+};
+
 export default function ProjectionChart({
   title = "Projections",
   data,
@@ -30,8 +34,8 @@ export default function ProjectionChart({
         <AreaChart data={data} margin={{ left: 6, right: 10, top: 6, bottom: 0 }}>
           <defs>
             <linearGradient id="projFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.55} />
-              <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.02} />
+              <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.05} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" opacity={0.25} />
@@ -45,12 +49,21 @@ export default function ProjectionChart({
             tickFormatter={(v) => (typeof v === "number" ? `${Math.round(v / 1000)}k` : String(v))}
           />
           <Tooltip
-            formatter={(v) => (typeof v === "number" ? formatCurrency(v) : String(v))}
+            formatter={(v: unknown, name?: string) => [
+              typeof v === "number" ? formatCurrency(v) : String(v),
+              name ? (LABEL_MAP[name] ?? name) : "",
+            ]}
+            labelFormatter={(label) => `Date: ${String(label)}`}
+            labelStyle={{ color: "hsl(var(--popover-foreground))" }}
             contentStyle={{
               background: "hsl(var(--popover))",
               borderColor: "hsl(var(--border))",
               borderRadius: 0,
               fontSize: 12,
+              color: "hsl(var(--popover-foreground))",
+            }}
+            itemStyle={{
+              color: "hsl(var(--popover-foreground))",
             }}
           />
           <Area

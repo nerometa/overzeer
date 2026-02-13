@@ -15,10 +15,9 @@ import { formatCurrency } from "@/lib/format";
 
 type Point = { date: string; revenue: number };
 
-function tooltipFormatter(value: unknown) {
-  if (typeof value === "number") return formatCurrency(value);
-  return String(value ?? "");
-}
+const LABEL_MAP: Record<string, string> = {
+  revenue: "Revenue",
+};
 
 export default function RevenueChart({
   title = "Revenue",
@@ -49,13 +48,21 @@ export default function RevenueChart({
           />
           <Tooltip
             cursor={{ stroke: "hsl(var(--border))" }}
-            formatter={tooltipFormatter}
-            labelStyle={{ color: "hsl(var(--foreground))" }}
+            formatter={(v: unknown, name?: string) => [
+              typeof v === "number" ? formatCurrency(v) : String(v),
+              name ? (LABEL_MAP[name] ?? name) : "",
+            ]}
+            labelFormatter={(label) => `Date: ${String(label)}`}
+            labelStyle={{ color: "hsl(var(--popover-foreground))" }}
             contentStyle={{
               background: "hsl(var(--popover))",
               borderColor: "hsl(var(--border))",
               borderRadius: 0,
               fontSize: 12,
+              color: "hsl(var(--popover-foreground))",
+            }}
+            itemStyle={{
+              color: "hsl(var(--popover-foreground))",
             }}
           />
           <Line
