@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { queryClient, trpc } from "@/utils/trpc";
+import { queryClient, trpc, trpcClient } from "@/utils/trpc";
 
 type Event = {
   id: string;
@@ -53,7 +53,7 @@ export default function EventForm({
       date: string;
       venue?: string;
       totalCapacity?: number;
-    }) => trpc.events.create.mutate(input),
+    }) => trpcClient.events.create.mutate(input),
     onSuccess: async (created) => {
       await queryClient.invalidateQueries({ queryKey: trpc.events.list.queryKey() });
       toast.success("Event created");
@@ -67,9 +67,9 @@ export default function EventForm({
       id: string;
       name?: string;
       date?: string;
-      venue?: string;
-      totalCapacity?: number;
-    }) => trpc.events.update.mutate(input),
+      venue?: string | null;
+      totalCapacity?: number | null;
+    }) => trpcClient.events.update.mutate(input),
     onSuccess: async () => {
       if (!initial) return;
       await Promise.all([
@@ -93,7 +93,7 @@ export default function EventForm({
         typeof initial?.totalCapacity === "number" ? String(initial.totalCapacity) : "",
     },
     validators: {
-      onSubmit: schema,
+      onSubmit: schema as any,
     },
     onSubmit: async ({ value }) => {
       const parsed = schema.parse(value);
@@ -145,9 +145,9 @@ export default function EventForm({
                   onChange={(e) => field.handleChange(e.target.value)}
                   placeholder="Warehouse Session"
                 />
-                {field.state.meta.errors.map((err) => (
-                  <p key={err?.message} className="text-xs text-red-500">
-                    {err?.message}
+                {field.state.meta.errors.map((err, i) => (
+                  <p key={i} className="text-xs text-red-500">
+                    {typeof err === "string" ? err : (err as any)?.message ?? "Invalid"}
                   </p>
                 ))}
               </div>
@@ -167,9 +167,9 @@ export default function EventForm({
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                   />
-                  {field.state.meta.errors.map((err) => (
-                    <p key={err?.message} className="text-xs text-red-500">
-                      {err?.message}
+                  {field.state.meta.errors.map((err, i) => (
+                    <p key={i} className="text-xs text-red-500">
+                      {typeof err === "string" ? err : (err as any)?.message ?? "Invalid"}
                     </p>
                   ))}
                 </div>
@@ -189,9 +189,9 @@ export default function EventForm({
                     onChange={(e) => field.handleChange(e.target.value)}
                     placeholder="1200"
                   />
-                  {field.state.meta.errors.map((err) => (
-                    <p key={err?.message} className="text-xs text-red-500">
-                      {err?.message}
+                  {field.state.meta.errors.map((err, i) => (
+                    <p key={i} className="text-xs text-red-500">
+                      {typeof err === "string" ? err : (err as any)?.message ?? "Invalid"}
                     </p>
                   ))}
                 </div>

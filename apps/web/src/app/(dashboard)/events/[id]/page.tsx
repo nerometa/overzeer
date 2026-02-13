@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { use } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 import EmptyState from "@/components/empty-state";
 import PageHeader from "@/components/page-header";
@@ -17,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatNumber } from "@/lib/format";
-import { trpc } from "@/utils/trpc";
+import { trpc, trpcClient, queryClient } from "@/utils/trpc";
 
 import { Edit3Icon, PlusIcon, SparklesIcon } from "lucide-react";
 
@@ -29,6 +30,25 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const velocity = useQuery(trpc.analytics.velocity.queryOptions({ eventId: id }));
   const projections = useQuery(trpc.analytics.projections.queryOptions({ eventId: id }));
   const sales = useQuery(trpc.sales.byEvent.queryOptions({ eventId: id }));
+
+  const deleteMutation = useMutation({
+    mutationFn: (saleId: string) => trpcClient.sales.delete.mutate({ id: saleId }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: trpc.sales.byEvent.queryKey({ eventId: id }) }),
+        queryClient.invalidateQueries({ queryKey: trpc.events.byId.queryKey({ id }) }),
+        queryClient.invalidateQueries({ queryKey: trpc.dashboard.overview.queryKey() }),
+      ]);
+      toast.success("Sale deleted");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleDeleteSale = (saleId: string) => {
+    if (confirm("Are you sure you want to delete this sale?")) {
+      deleteMutation.mutate(saleId);
+    }
+  };
 
   const title = event.data?.name ?? "Event";
 
@@ -93,47 +113,53 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 <Skeleton className="h-[320px] rounded-none" />
               ) : velocity.isError ? (
                 <EmptyState title="Couldn’t load velocity" description={velocity.error.message} />
-              ) : (
+              ) : velocity.data ? (
                 <RevenueChart
                   data={velocity.data.salesByDay.map((d) => ({
                     date: format(new Date(d.date), "MMM d"),
                     revenue: d.revenue,
                   }))}
                 />
+              ) : (
+                <EmptyState title="No velocity data" />
               )}
             </div>
             {revenue.isLoading ? (
               <Skeleton className="h-[320px] rounded-none" />
             ) : revenue.isError ? (
-              <EmptyState title="Couldn’t load revenue" description={revenue.error.message} />
-            ) : (
+              <EmptyState title="Couldn't load revenue" description={revenue.error.message} />
+            ) : revenue.data ? (
               <PlatformBreakdown
                 data={revenue.data.revenueByPlatform.map((p) => ({
                   name: p.platformName,
                   value: p.revenue,
                 }))}
               />
+            ) : (
+              <EmptyState title="No revenue data" />
             )}
 
             <div className="lg:col-span-2">
               {velocity.isLoading ? (
                 <Skeleton className="h-[320px] rounded-none" />
               ) : velocity.isError ? (
-                <EmptyState title="Couldn’t load velocity" description={velocity.error.message} />
-              ) : (
+                <EmptyState title="Couldn't load velocity" description={velocity.error.message} />
+              ) : velocity.data ? (
                 <SalesVelocityChart
                   data={velocity.data.salesByDay.map((d) => ({
                     date: format(new Date(d.date), "MMM d"),
                     ticketsSold: d.ticketsSold,
                   }))}
                 />
+              ) : (
+                <EmptyState title="No velocity data" />
               )}
             </div>
             {projections.isLoading ? (
               <Skeleton className="h-[320px] rounded-none" />
             ) : projections.isError ? (
-              <EmptyState title="Couldn’t load projections" description={projections.error.message} />
-            ) : (
+              <EmptyState title="Couldn't load projections" description={projections.error.message} />
+            ) : projections.data ? (
               <ProjectionChart
                 data={(() => {
                   // Build small curve based on current and projected.
@@ -151,6 +177,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 })()}
                 note={`As of ${format(new Date(projections.data.asOf), "PPp")}`}
               />
+            ) : (
+              <EmptyState title="No projections data" />
             )}
           </div>
 
@@ -169,13 +197,13 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 <Skeleton className="h-28 rounded-none" />
               ) : sales.isError ? (
                 <EmptyState title="Couldn’t load sales" description={sales.error.message} />
-              ) : sales.data.length === 0 ? (
+              ) : !sales.data || sales.data.length === 0 ? (
                 <EmptyState
                   title="No sales logged"
                   description="Add manual sales or connect a platform integration to start populating analytics."
                   action={{ label: "Add manual sale", href: `/events/${id}/sales/new` }}
                 />
-              ) : (
+              ) : sales.data ? (
                 <SalesTable
                   rows={sales.data.map((s) => ({
                     id: s.id,
@@ -186,7 +214,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     pricePerTicket: s.pricePerTicket,
                     fees: s.fees,
                   }))}
+                  editHref={(s) => `/events/${id}/sales/${s.id}`}
+                  onDelete={handleDeleteSale}
                 />
+              ) : (
+                <EmptyState title="No sales data" />
               )}
             </CardContent>
           </Card>

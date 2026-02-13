@@ -90,8 +90,8 @@ export default function AnalyticsDeepDivePage() {
       {events.isLoading ? (
         <Skeleton className="h-10 rounded-none" />
       ) : events.isError ? (
-        <EmptyState title="Couldn’t load events" description={events.error.message} />
-      ) : events.data.length === 0 ? (
+        <EmptyState title="Couldn't load events" description={events.error.message} />
+      ) : !events.data || events.data.length === 0 ? (
         <EmptyState
           title="No events to analyze"
           description="Create an event and start logging sales to unlock analytics."
@@ -101,12 +101,12 @@ export default function AnalyticsDeepDivePage() {
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className="max-w-xl">
             <div className="text-xs text-muted-foreground">Select event</div>
-            <Select value={selectedId} onValueChange={(v) => setEventId(v)}>
+            <Select value={selectedId} onValueChange={(v) => v && setEventId(v)}>
               <SelectTrigger className="mt-1 w-full rounded-none md:w-[420px]">
                 <SelectValue placeholder="Choose event" />
               </SelectTrigger>
               <SelectContent>
-                {events.data.map((e) => (
+                {events.data?.map((e) => (
                   <SelectItem key={e.id} value={e.id}>
                     {e.name} — {format(new Date(e.date), "MMM d, yyyy")}
                   </SelectItem>

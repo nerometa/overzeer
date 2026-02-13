@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { queryClient, trpc } from "@/utils/trpc";
+import { queryClient, trpc, trpcClient } from "@/utils/trpc";
 
 import { CalendarPlusIcon, ChevronRightIcon, Trash2Icon } from "lucide-react";
 
@@ -37,7 +37,7 @@ export default function EventsPage() {
   const events = useQuery(trpc.events.list.queryOptions());
 
   const deleteMutation = useMutation({
-    mutationFn: (input: { id: string }) => trpc.events.delete.mutate(input),
+    mutationFn: (input: { id: string }) => trpcClient.events.delete.mutate(input),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: trpc.events.list.queryKey() });
       toast.success("Event deleted");
@@ -69,7 +69,7 @@ export default function EventsPage() {
         </div>
       ) : events.isError ? (
         <EmptyState title="Couldn’t load events" description={events.error.message} />
-      ) : events.data.length === 0 ? (
+      ) : events.data?.length === 0 ? (
         <EmptyState
           title="No events yet"
           description="Create your first event to start tracking sales and projections."
@@ -92,7 +92,7 @@ export default function EventsPage() {
               </TableHeader>
               <TableBody>
                 {events.data
-                  .slice()
+                  ?.slice()
                   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                   .map((e) => (
                     <TableRow key={e.id}>

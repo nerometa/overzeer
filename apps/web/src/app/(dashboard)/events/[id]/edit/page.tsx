@@ -24,8 +24,8 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
       {event.isLoading ? (
         <Skeleton className="h-[420px] rounded-none" />
       ) : event.isError ? (
-        <EmptyState title="Couldn’t load event" description={event.error.message} />
-      ) : (
+        <EmptyState title="Couldn't load event" description={event.error.message} />
+      ) : event.data ? (
         <EventForm
           mode="edit"
           initial={{
@@ -36,6 +36,8 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
             totalCapacity: event.data.totalCapacity,
           }}
         />
+      ) : (
+        <EmptyState title="Event not found" description="The requested event could not be found." />
       )}
     </div>
   );

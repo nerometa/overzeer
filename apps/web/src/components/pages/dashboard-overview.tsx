@@ -41,8 +41,8 @@ export default function DashboardOverviewPage() {
           ))}
         </div>
       ) : overview.isError ? (
-        <EmptyState title="Couldn’t load dashboard overview" description={overview.error.message} />
-      ) : (
+        <EmptyState title="Couldn't load dashboard overview" description={overview.error.message} />
+      ) : overview.data ? (
         <>
           <div className="grid gap-4 md:grid-cols-3">
             <StatCard
@@ -106,6 +106,8 @@ export default function DashboardOverviewPage() {
             </CardContent>
           </Card>
         </>
+      ) : (
+        <EmptyState title="No data available" description="Unable to load dashboard data." />
       )}
     </div>
   );

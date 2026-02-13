@@ -7,6 +7,7 @@ import { desc, eq } from "drizzle-orm";
 type RevenueByPlatform = {
   platformId: string | null;
   platformName: string;
+  colorHex: string | null;
   revenue: number;
   fees: number;
   netRevenue: number;
@@ -83,15 +84,16 @@ function normalizeTicketType(ticketType: string | null): string {
   return ticketType?.trim() ? ticketType : "Unknown";
 }
 
-function normalizePlatform(platform: { id: string; name: string } | null): {
+function normalizePlatform(platform: { id: string; name: string; colorHex: string | null } | null): {
   platformId: string | null;
   platformName: string;
+  colorHex: string | null;
   key: string;
 } {
   if (!platform) {
-    return { platformId: null, platformName: "Unknown", key: "__unknown__" };
+    return { platformId: null, platformName: "Unknown", colorHex: null, key: "__unknown__" };
   }
-  return { platformId: platform.id, platformName: platform.name, key: platform.id };
+  return { platformId: platform.id, platformName: platform.name, colorHex: platform.colorHex, key: platform.id };
 }
 
 function toDateOnlyIso(date: Date): string {
@@ -115,14 +117,15 @@ export async function getRevenueBreakdown(eventId: string): Promise<RevenueBreak
 
   const eventSales = await db.query.sales.findMany({
     where: eq(sales.eventId, eventId),
-    with: {
-      platform: {
-        columns: {
-          id: true,
-          name: true,
+      with: {
+        platform: {
+          columns: {
+            id: true,
+            name: true,
+            colorHex: true,
+          },
         },
       },
-    },
   });
 
   let totalRevenue = 0;
@@ -142,6 +145,7 @@ export async function getRevenueBreakdown(eventId: string): Promise<RevenueBreak
     const platformAgg = byPlatform.get(platformInfo.key) ?? {
       platformId: platformInfo.platformId,
       platformName: platformInfo.platformName,
+      colorHex: platformInfo.colorHex,
       revenue: 0,
       fees: 0,
       netRevenue: 0,
