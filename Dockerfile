@@ -45,8 +45,8 @@ FROM oven/bun:1.3.8-debian AS runner
 WORKDIR /app
 
 # Create non-root user for security
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 overzeer
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 --gid nodejs --home-dir /app --shell /bin/sh overzeer
 
 # Copy built artifacts
 COPY --from=builder /app/apps/server/dist ./apps/server/dist
@@ -62,6 +62,9 @@ COPY --from=builder /app/apps/server/.env.example ./apps/server/.env 2>/dev/null
 
 # Change ownership
 RUN chown -R overzeer:nodejs /app
+
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 USER overzeer
 
