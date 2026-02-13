@@ -2,8 +2,8 @@ import { BasePlatformAdapter } from './base';
 import type { PlatformCredentials, PlatformEventMapping, PlatformSaleRecord } from './types';
 
 export class AtDoorAdapter extends BasePlatformAdapter {
-  readonly name = 'At-Door';
-  readonly slug = 'At-Door';
+  readonly name = 'At Door';
+  readonly slug = 'At Door';
   readonly supportsApi = false;
 
   async authenticate(_credentials: PlatformCredentials): Promise<boolean> {

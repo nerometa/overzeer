@@ -15,7 +15,7 @@ const adapterRegistry = new Map<string, PlatformAdapter>([
   ['Megatix', new MegatixAdapter()],
   ['Ticketmelon', new TicketmelonAdapter()],
   ['Resident Advisor', new ResidentAdvisorAdapter()],
-  ['At-Door', new AtDoorAdapter()],
+  ['At Door', new AtDoorAdapter()],
 ]);
 
 export function getAdapter(slug: string): PlatformAdapter | undefined {

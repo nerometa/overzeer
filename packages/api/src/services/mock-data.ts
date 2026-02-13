@@ -96,7 +96,7 @@ export function generateMockSalesForPlatform(
       priceRange: { min: 15, max: 80 },
       ticketTypes: ['First Release', 'Second Release', 'Door'],
     },
-    'At-Door': {
+    'At Door': {
       priceRange: { min: 500, max: 1500 },
       ticketTypes: ['Walk-in', 'Guest List'],
     },

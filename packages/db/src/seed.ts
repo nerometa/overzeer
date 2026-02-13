@@ -18,7 +18,7 @@ async function seed() {
     { id: createId(), name: "Megatix", apiEnabled: false, colorHex: "#FF6B6B" },
     { id: createId(), name: "Ticketmelon", apiEnabled: false, colorHex: "#4ECDC4" },
     { id: createId(), name: "Resident Advisor", apiEnabled: false, colorHex: "#95E1D3" },
-    { id: createId(), name: "At-Door", apiEnabled: false, colorHex: "#F38181" },
+    { id: createId(), name: "At Door", apiEnabled: false, colorHex: "#F38181" },
   ];
 
   await db.insert(schema.platforms).values(platformData);
@@ -77,7 +77,7 @@ async function seed() {
 
   for (const event of eventData) {
     for (const platform of platformData) {
-      if (platform.name === "At-Door") continue;
+      if (platform.name === "At Door") continue;
 
       for (const ticketType of ticketTypes) {
         const basePrice =
