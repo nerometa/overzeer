@@ -96,4 +96,53 @@ export const salesRouter = router({
 
       return { success: true } as const;
     }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+        platformId: z.union([z.string().min(1), z.null()]).optional(),
+        ticketType: z.union([z.string().min(1), z.null()]).optional(),
+        quantity: z.number().int().positive().optional(),
+        pricePerTicket: z.number().positive().optional(),
+        fees: z.number().min(0).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existing = await db.query.sales.findFirst({
+        where: eq(sales.id, input.id),
+        with: { event: { columns: { userId: true } } },
+        columns: { id: true },
+      });
+
+      if (!existing || existing.event?.userId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Sale not found",
+        });
+      }
+
+      const updateData = {
+        platformId: input.platformId,
+        ticketType: input.ticketType,
+        quantity: input.quantity,
+        pricePerTicket: input.pricePerTicket,
+        fees: input.fees,
+      };
+
+      const [updated] = await db
+        .update(sales)
+        .set(updateData)
+        .where(eq(sales.id, input.id))
+        .returning();
+
+      if (!updated) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update sale",
+        });
+      }
+
+      return updated;
+    }),
 });
