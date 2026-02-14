@@ -2,13 +2,13 @@
 
 Centralized analytics hub for event ticket sales across multiple platforms. Aggregates data from Megatix, Ticketmelon, Resident Advisor, and manual at-door entries into a unified dashboard with real-time revenue projections and performance metrics.
 
-Built with [Better T Stack](https://github.com/AmanVarshney01/create-better-t-stack) — Next.js 15, Elysia, tRPC, Drizzle ORM, SQLite, Better Auth, and Bun.
+Built with [Better T Stack](https://github.com/AmanVarshney01/create-better-t-stack) — Next.js 16, Elysia, tRPC, Drizzle ORM, SQLite, Better Auth, and Bun.
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 15 (App Router), React 19, TailwindCSS 4, shadcn/ui |
+| Frontend | Next.js 16 (App Router), React 19, TailwindCSS 4, shadcn/ui |
 | Backend | Elysia, tRPC 11, Bun runtime |
 | Database | SQLite (Turso-compatible), Drizzle ORM |
 | Auth | Better Auth |
@@ -44,7 +44,7 @@ bun run dev
 ```
 overzeer/
 ├── apps/
-│   ├── web/              # Next.js 15 frontend
+│   ├── web/              # Next.js 16 frontend
 │   │   ├── src/app/      # App Router pages
 │   │   ├── src/components/
 │   │   └── src/utils/    # tRPC client
@@ -120,34 +120,91 @@ NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 ## Testing
 
 ```bash
-# Run all tests
-bun test
+# Run unit tests
+bun run test
 
 # Run E2E tests
 bun run test:e2e
-
-# Run E2E tests with UI
-bun run test:e2e:ui
 ```
 
 ## Deployment
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+Overzeer can be deployed to **Vercel** (managed) or **Dokploy** (self-hosted).
 
-### Quick Deploy (Vercel)
+### Option 1: Vercel (Managed)
+
+Best for zero-config deployment with automatic scaling.
+
+**Deploy:**
+1. Import your repository in Vercel dashboard
+2. Configure both services:
+
+**Server:**
+- Framework: Other
+- Build Command: `bun run build`
+- Output Directory: `apps/server/dist`
+- Install Command: `bun install`
+
+**Web:**
+- Framework: Next.js
+- Build Command: `bun run build`
+- Output Directory: `apps/web/.next`
+
+**Environment Variables:**
+
+Server:
+```
+DATABASE_URL=libsql://your-db.turso.io
+BETTER_AUTH_SECRET=<32-char-secret>
+BETTER_AUTH_URL=https://api.yourdomain.com
+CORS_ORIGIN=https://yourdomain.com
+```
+
+Web:
+```
+NEXT_PUBLIC_SERVER_URL=https://api.yourdomain.com
+```
+
+> Use **Turso** (libSQL) for database — SQLite files don't persist on Vercel's serverless functions.
+
+### Option 2: Dokploy (Self-Hosted)
+
+Best for full control on your own VPS.
 
 ```bash
-# Install Vercel CLI
-bun add -g vercel
+# Create .env
+cp apps/server/.env.example .env
 
-# Deploy frontend
-cd apps/web
-vercel
-
-# Deploy backend
-cd apps/server
-vercel
+# Edit .env with values, then:
+docker compose up --build
 ```
+
+**In Dokploy:**
+1. Create a Compose project pointing to `docker-compose.yml`
+2. Set environment variables (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `CORS_ORIGIN`, `NEXT_PUBLIC_SERVER_URL`)
+3. Configure domains (web → port 3001, server → port 3000)
+4. Deploy and run `docker exec -it <container> bun drizzle-kit push`
+
+### Environment Variables Reference
+
+| Variable | Server | Web | Notes |
+|----------|--------|-----|-------|
+| `DATABASE_URL` | ✅ | | SQLite: `file:/data/prod.db` (Docker), Turso: `libsql://...` |
+| `BETTER_AUTH_SECRET` | ✅ | | Min 32 characters |
+| `BETTER_AUTH_URL` | ✅ | | Public server URL |
+| `CORS_ORIGIN` | ✅ | | Public web URL |
+| `NEXT_PUBLIC_SERVER_URL` | | ✅ | Build-time (baked into bundle) |
+| `NODE_ENV` | ✅ | ✅ | `production` in deploy |
+
+### CI/CD
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push to `main`:
+- Type checking
+- Unit tests (17 tests)
+- Production build
+
+For Vercel: connect repo in Vercel dashboard for auto-deploy.
+For Dokploy: configure webhook in Dokploy dashboard.
 
 ## Architecture
 
@@ -170,7 +227,7 @@ const { data: events } = trpc.events.list.useQuery();
 ### Performance
 
 - Bun runtime: 3x faster than Node.js for package installation and tests
-- Next.js 15: React Server Components and streaming SSR
+- Next.js 16: React Server Components and streaming SSR
 - tRPC batching: Multiple requests in a single HTTP call
 - Optimistic UI: Instant feedback for mutations
 
