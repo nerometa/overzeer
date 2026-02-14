@@ -1,82 +1,41 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
 
 jobs:
-  test:
+  ci:
     runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: file:./test.db
+      BETTER_AUTH_SECRET: ci-secret-value-that-is-at-least-32-characters
+      BETTER_AUTH_URL: http://localhost:3000
+      CORS_ORIGIN: http://localhost:3001
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+      NODE_ENV: test
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: "1.3.8"
 
       - name: Install dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: Type check
         run: bun run check-types
 
       - name: Setup test database
         run: bun run db:push && bun run db:seed
-        env:
-          DATABASE_URL: file:./local.db
-          BETTER_AUTH_SECRET: test-secret-that-is-at-least-32-chars-long
-          BETTER_AUTH_URL: http://localhost:3000
-          CORS_ORIGIN: http://localhost:3001
-          NODE_ENV: test
 
       - name: Run tests
         run: bun run test
-        env:
-          BETTER_AUTH_SECRET: test-secret-that-is-at-least-32-chars-long
-          BETTER_AUTH_URL: http://localhost:3000
-          CORS_ORIGIN: http://localhost:3001
-          NODE_ENV: test
 
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
-
-      - name: Build packages
+      - name: Build
         run: bun run build
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [test, build]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
-
-      - name: Build for production
-        run: bun run build
-
-      # Uncomment below for Vercel deployment
-      # - name: Deploy to Vercel
-      #   run: |
-      #     bun add -g vercel
-      #     vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
