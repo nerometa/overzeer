@@ -12,8 +12,8 @@ playwright-report
 test-results
 *.md
 .github
-docker-compose*.yml
-Dockerfile*
+docker-compose.override.yml
+docker-compose.prod.yml
 *.test.ts
 *.spec.ts
 e2e
