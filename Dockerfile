@@ -58,20 +58,13 @@ RUN addgroup -g 1001 -S overzeer && \
     adduser -u 1001 -S overzeer -G overzeer && \
     mkdir -p /data && chown overzeer:overzeer /data
 
-# Copy package files
+# Copy pre-installed dependencies from deps stage
+COPY --from=deps --chown=overzeer:overzeer /app/node_modules ./node_modules
 COPY --chown=overzeer:overzeer package.json bun.lock turbo.json tsconfig.base.json ./
-COPY --chown=overzeer:overzeer apps/server/package.json apps/server/
-COPY --chown=overzeer:overzeer packages/api/package.json packages/api/
-COPY --chown=overzeer:overzeer packages/auth/package.json packages/auth/
-COPY --chown=overzeer:overzeer packages/db/package.json packages/db/
-COPY --chown=overzeer:overzeer packages/env/package.json packages/env/
 
 # Copy source code
 COPY --chown=overzeer:overzeer apps/server ./apps/server
 COPY --chown=overzeer:overzeer packages ./packages
-
-# Install production dependencies only
-RUN bun install --production --frozen-lockfile
 
 USER overzeer
 EXPOSE 3000
@@ -93,7 +86,6 @@ RUN addgroup -g 1001 -S overzeer && \
 # Copy standalone Next.js build
 COPY --from=web-builder --chown=overzeer:overzeer /app/apps/web/.next/standalone ./
 COPY --from=web-builder --chown=overzeer:overzeer /app/apps/web/.next/static ./apps/web/.next/static
-COPY --from=web-builder --chown=overzeer:overzeer /app/apps/web/public ./apps/web/public
 
 USER overzeer
 EXPOSE 3001
