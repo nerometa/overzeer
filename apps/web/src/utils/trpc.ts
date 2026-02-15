@@ -19,10 +19,17 @@ export const queryClient = new QueryClient({
   }),
 });
 
+const getServerBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    return env.NEXT_PUBLIC_SERVER_URL;
+  }
+  return "http://server:3000";
+};
+
 export const trpcClient = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
-      url: `${env.NEXT_PUBLIC_SERVER_URL}/trpc`,
+      url: `${getServerBaseUrl()}/trpc`,
       fetch(url, options) {
         return fetch(url, {
           ...options,
