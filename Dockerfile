@@ -1,9 +1,9 @@
 # =============================================================================
-# Overzeer - Simplified Production Build
+# Overzeer - Production Build
 # =============================================================================
 # Strategy:
 #   - Web (Next.js): Node.js for stability (avoids Bun segfaults with React 19)
-#   - Server (Elysia): Bun compile to single binary (efficient, minimal image)
+#   - Server (Elysia): Bun runtime with full workspace support
 # =============================================================================
 
 # ---------------------------------------------------------------------------
@@ -49,26 +49,37 @@ COPY packages ./packages
 RUN cd apps/web && npm run build
 
 # ---------------------------------------------------------------------------
-# Stage 3: Build Server with Bun Compile (SINGLE BINARY)
+# Stage 3: Server Production Runtime (Bun with workspace support)
 # ---------------------------------------------------------------------------
-FROM oven/bun:1.3.8-alpine AS server-builder
+FROM oven/bun:1.3.8-alpine AS server
 WORKDIR /app
 
-# Copy all dependencies and source
-COPY --from=deps /app/node_modules ./node_modules
-COPY package.json bun.lock turbo.json tsconfig.base.json ./
-COPY apps/server ./apps/server
-COPY packages ./packages
+RUN addgroup -g 1001 -S overzeer && \
+    adduser -u 1001 -S overzeer -G overzeer && \
+    mkdir -p /data && chown overzeer:overzeer /data
 
-# Compile to single binary with all dependencies bundled
-# This creates a self-contained executable, no node_modules needed at runtime
-RUN bun build --compile \
-    --minify-whitespace \
-    --minify-syntax \
-    --sourcemap \
-    --bytecode \
-    --outfile server \
-    ./apps/server/src/index.ts
+# Copy package files
+COPY --chown=overzeer:overzeer package.json bun.lock turbo.json tsconfig.base.json ./
+COPY --chown=overzeer:overzeer apps/server/package.json apps/server/
+COPY --chown=overzeer:overzeer packages/api/package.json packages/api/
+COPY --chown=overzeer:overzeer packages/auth/package.json packages/auth/
+COPY --chown=overzeer:overzeer packages/db/package.json packages/db/
+COPY --chown=overzeer:overzeer packages/env/package.json packages/env/
+
+# Copy source code
+COPY --chown=overzeer:overzeer apps/server ./apps/server
+COPY --chown=overzeer:overzeer packages ./packages
+
+# Install production dependencies only
+RUN bun install --production --frozen-lockfile
+
+USER overzeer
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+
+CMD ["bun", "run", "apps/server/src/index.ts"]
 
 # ---------------------------------------------------------------------------
 # Stage 4: Web Production Runtime (Node.js for stability)
@@ -95,26 +106,3 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3001/ || exit 1
 
 CMD ["node", "apps/web/server.js"]
-
-# ---------------------------------------------------------------------------
-# Stage 5: Server Production Runtime (Minimal - single binary)
-# ---------------------------------------------------------------------------
-FROM alpine:3.20 AS server
-WORKDIR /app
-
-# Install wget for healthcheck (minimal dependencies)
-RUN apk add --no-cache wget && \
-    addgroup -g 1001 -S overzeer && \
-    adduser -u 1001 -S overzeer -G overzeer && \
-    mkdir -p /data && chown overzeer:overzeer /data
-
-# Copy only the compiled binary (no node_modules needed!)
-COPY --from=server-builder --chown=overzeer:overzeer /app/server ./
-
-USER overzeer
-EXPOSE 3000
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
-
-CMD ["./server"]
