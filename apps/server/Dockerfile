@@ -10,7 +10,7 @@ COPY packages/api/package.json packages/api/
 COPY packages/auth/package.json packages/auth/
 COPY packages/db/package.json packages/db/
 COPY packages/env/package.json packages/env/
-RUN bun install --frozen-lockfile --production=false
+RUN bun install --frozen-lockfile
 
 # Build the application
 FROM base AS builder
