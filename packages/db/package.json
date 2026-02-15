@@ -19,17 +19,17 @@
     "db:reset": "rm -f ../../local.db && drizzle-kit push && bun run src/seed.ts"
   },
   "dependencies": {
-    "@libsql/client": "catalog:",
+    "@libsql/client": "0.15.15",
     "@overzeer/env": "workspace:*",
     "@paralleldrive/cuid2": "^3.3.0",
-    "dotenv": "catalog:",
+    "dotenv": "^17.2.2",
     "drizzle-orm": "^0.45.1",
-    "libsql": "catalog:",
-    "zod": "catalog:"
+    "libsql": "0.5.22",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@overzeer/config": "workspace:*",
+    "@types/bun": "^1.3.4",
     "drizzle-kit": "^0.31.8",
-    "typescript": "catalog:"
+    "typescript": "^5"
   }
 }
