@@ -2,12 +2,12 @@
 # Overzeer - Production Build
 # =============================================================================
 # Strategy:
-#   - Web (Next.js): Node.js for stability (avoids Bun segfaults with React 19)
+#   - Web (Next.js): Bun build with Node.js runtime (avoids compatibility issues)
 #   - Server (Elysia): Bun runtime with full workspace support
 # =============================================================================
 
 # ---------------------------------------------------------------------------
-# Stage 1: Install all dependencies (shared base)
+# Stage 1: Install all dependencies with Bun (shared base)
 # ---------------------------------------------------------------------------
 FROM oven/bun:1.3.8-alpine AS deps
 WORKDIR /app
@@ -21,32 +21,29 @@ COPY packages/auth/package.json packages/auth/
 COPY packages/db/package.json packages/db/
 COPY packages/env/package.json packages/env/
 
-# Install all dependencies (including devDependencies needed for build)
+# Install all dependencies
 RUN bun install --frozen-lockfile
 
 # ---------------------------------------------------------------------------
-# Stage 2: Build Next.js with Node.js (STABLE - avoids Bun crashes)
+# Stage 2: Build Next.js with Bun
 # ---------------------------------------------------------------------------
-FROM node:22-alpine AS web-builder
+FROM oven/bun:1.3.8-alpine AS web-builder
 WORKDIR /app
-
-# Install Bun in Node image (needed to copy deps from Bun stage)
-RUN apk add --no-cache bash curl unzip && \
-    curl -fsSL https://bun.sh/install | bash && \
-    mv ~/.bun/bin/bun /usr/local/bin/bun
 
 ARG NEXT_PUBLIC_SERVER_URL
 ENV NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL}
 
-# Copy dependencies and source
+# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json bun.lock turbo.json tsconfig.base.json ./
+
+# Copy source code
 COPY apps/web ./apps/web
 COPY apps/server ./apps/server
 COPY packages ./packages
 
-# Build with Node.js (stable, no segmentation faults)
-RUN cd apps/web && npm run build
+# Build with Bun
+RUN cd apps/web && bun run build
 
 # ---------------------------------------------------------------------------
 # Stage 3: Server Production Runtime (Bun with workspace support)
