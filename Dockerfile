@@ -12,7 +12,7 @@ FROM node:22-alpine AS deps
 WORKDIR /app
 
 # Install Bun in Node image (needed for workspace installs)
-RUN apk add --no-cache curl unzip && \
+RUN apk add --no-cache bash curl unzip && \
     curl -fsSL https://bun.sh/install | bash && \
     mv ~/.bun/bin/bun /usr/local/bin/bun
 
@@ -35,7 +35,7 @@ FROM node:22-alpine AS web-builder
 WORKDIR /app
 
 # Install Bun for workspace compatibility
-RUN apk add --no-cache curl unzip && \
+RUN apk add --no-cache bash curl unzip && \
     curl -fsSL https://bun.sh/install | bash && \
     mv ~/.bun/bin/bun /usr/local/bin/bun
 
