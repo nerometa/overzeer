@@ -1,13 +1,13 @@
-import { env } from "@overzeer/env/web";
 import { createAuthClient } from "better-auth/react";
 
-const getServerBaseUrl = () => {
+const getBaseUrl = () => {
   if (typeof window !== "undefined") {
-    return env.NEXT_PUBLIC_SERVER_URL;
+    return "";
   }
-  return "http://server:3000";
+  const port = process.env.PORT ?? "3001";
+  return `http://127.0.0.1:${port}`;
 };
 
 export const authClient = createAuthClient({
-  baseURL: getServerBaseUrl(),
+  baseURL: getBaseUrl(),
 });
