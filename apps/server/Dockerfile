@@ -2,9 +2,10 @@
 FROM oven/bun:1.3.8-alpine AS base
 WORKDIR /app
 
-# Install dependencies (only copy what's needed)
+# Install dependencies (copy all workspace package.json for lockfile consistency)
 FROM base AS deps
 COPY package.json bun.lock turbo.json tsconfig.base.json ./
+COPY apps/web/package.json apps/web/
 COPY apps/server/package.json apps/server/
 COPY packages/api/package.json packages/api/
 COPY packages/auth/package.json packages/auth/
