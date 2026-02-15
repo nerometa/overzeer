@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -6,36 +6,88 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  DATABASE_URL: file:./test.db
+  BETTER_AUTH_SECRET: ci-secret-value-that-is-at-least-32-characters-long
+  BETTER_AUTH_URL: http://localhost:3000
+  CORS_ORIGIN: http://localhost:3001
+  NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+  NODE_ENV: test
+
 jobs:
-  ci:
+  typecheck:
     runs-on: ubuntu-latest
-
-    env:
-      DATABASE_URL: file:./test.db
-      BETTER_AUTH_SECRET: ci-secret-value-that-is-at-least-32-characters
-      BETTER_AUTH_URL: http://localhost:3000
-      CORS_ORIGIN: http://localhost:3001
-      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
-      NODE_ENV: test
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.8"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+      - run: bun install --frozen-lockfile
+      - run: bun run check-types
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.8"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+      - run: bun install --frozen-lockfile
 
-      - name: Type check
-        run: bun run check-types
+  test:
+    runs-on: ubuntu-latest
+    needs: typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.8"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+      - run: bun install --frozen-lockfile
+      - run: bun run db:push
+      - run: bun run db:seed
+      - run: bun run test
 
-      - name: Setup test database
-        run: bun run db:push && bun run db:seed
+  build:
+    runs-on: ubuntu-latest
+    needs: typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.8"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+      - run: bun install --frozen-lockfile
+      - run: bun run build
 
-      - name: Run tests
-        run: bun run test
-
-      - name: Build
-        run: bun run build
+  docker:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      - name: Build server image
+        run: docker build -f apps/server/Dockerfile -t overzeer-server:latest .
+      - name: Build web image
+        run: docker build -f apps/web/Dockerfile --build-arg NEXT_PUBLIC_SERVER_URL=http://localhost:3000 -t overzeer-web:latest .
