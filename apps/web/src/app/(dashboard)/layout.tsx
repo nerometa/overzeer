@@ -12,11 +12,10 @@ export default async function DashboardLayout({
   const session = await authClient.getSession({
     fetchOptions: {
       headers: await headers(),
-      throw: true,
     },
   });
 
-  if (!session?.user) {
+  if (!session.data?.user) {
     redirect("/login");
   }
 
