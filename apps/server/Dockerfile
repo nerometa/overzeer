@@ -1,9 +1,7 @@
-# Overzeer Server - Simplified Bun-based Dockerfile
 FROM oven/bun:1.3.8-alpine AS base
 WORKDIR /app
 
-# Install dependencies (copy all workspace package.json for lockfile consistency)
-FROM base AS deps
+FROM base AS builder
 COPY package.json bun.lock turbo.json tsconfig.base.json ./
 COPY apps/web/package.json apps/web/
 COPY apps/server/package.json apps/server/
@@ -13,25 +11,16 @@ COPY packages/db/package.json packages/db/
 COPY packages/env/package.json packages/env/
 RUN bun install --frozen-lockfile
 
-# Build the application
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
-COPY package.json bun.lock turbo.json tsconfig.base.json ./
 COPY apps/server ./apps/server
 COPY packages ./packages
 RUN bun run --filter=server build
 
-# Production runner
 FROM oven/bun:1.3.8-alpine AS runner
 WORKDIR /app
 
-# Create non-root user
 RUN addgroup -g 1001 -S overzeer && adduser -u 1001 -S overzeer -G overzeer
-
-# Setup data directory for SQLite
 RUN mkdir -p /data && chown overzeer:overzeer /data
 
-# Copy only the built artifact
 COPY --from=builder --chown=overzeer:overzeer /app/apps/server/dist ./dist
 COPY --from=builder --chown=overzeer:overzeer /app/node_modules ./node_modules
 COPY --from=builder --chown=overzeer:overzeer /app/packages/db/drizzle.config.ts ./packages/db/
