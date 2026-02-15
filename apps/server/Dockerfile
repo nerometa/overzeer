@@ -5,7 +5,6 @@ WORKDIR /app
 # Copy package files
 COPY package.json bun.lock turbo.json tsconfig.base.json ./
 COPY apps/server/package.json apps/server/
-COPY apps/web/package.json apps/web/
 COPY packages/api/package.json packages/api/
 COPY packages/auth/package.json packages/auth/
 COPY packages/db/package.json packages/db/
@@ -28,13 +27,11 @@ RUN addgroup -g 1001 -S overzeer && \
 
 COPY --from=builder --chown=overzeer:overzeer /app/node_modules ./node_modules
 COPY --from=builder --chown=overzeer:overzeer /app/package.json ./
+COPY --from=builder --chown=overzeer:overzeer /app/tsconfig.base.json ./
 COPY --from=builder --chown=overzeer:overzeer /app/apps/server ./apps/server
 COPY --from=builder --chown=overzeer:overzeer /app/packages ./packages
 
 USER overzeer
 EXPOSE 3000
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 
 CMD ["bun", "run", "apps/server/src/index.ts"]
