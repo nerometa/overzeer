@@ -20,10 +20,9 @@ export const queryClient = new QueryClient({
 
 const getBaseUrl = () => {
   if (typeof window !== "undefined") {
-    return "";
+    return process.env.NEXT_PUBLIC_SERVER_URL || "";
   }
-  const port = process.env.PORT ?? "3001";
-  return `http://127.0.0.1:${port}`;
+  return process.env.SERVER_URL || `http://127.0.0.1:${process.env.PORT || 3001}`;
 };
 
 export const trpcClient = createTRPCClient<AppRouter>({

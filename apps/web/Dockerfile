@@ -2,8 +2,10 @@
 FROM oven/bun:1.3.8-alpine AS builder
 WORKDIR /app
 
-ARG SERVER_URL=http://server:3000
-ENV SERVER_URL=${SERVER_URL}
+# Build-time: use public URL for browser (NEXT_PUBLIC_* is baked into bundle)
+ARG NEXT_PUBLIC_SERVER_URL
+ENV NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL}
+ENV NODE_ENV=production
 
 # Copy package files
 COPY package.json bun.lock turbo.json tsconfig.base.json ./

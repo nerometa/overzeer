@@ -22,6 +22,7 @@ export const app = new Elysia()
     set.headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     set.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
   })
+  .get("/health", () => ({ status: "ok" }))
   .all("/api/auth/*", async (context) => {
     const { request, status } = context;
     if (["POST", "GET"].includes(request.method)) {
@@ -39,6 +40,9 @@ export const app = new Elysia()
     return res;
   })
   .get("/", () => "OK")
-  .listen(3000, () => {
-    console.log("Server is running on http://localhost:3000");
+  .listen({
+    port: Number(process.env.PORT) || 3000,
+    hostname: "0.0.0.0",
+  }, () => {
+    console.log("Server is running on http://0.0.0.0:3000");
   });
