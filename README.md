@@ -2,13 +2,13 @@
 
 Centralized analytics hub for event ticket sales across multiple platforms. Aggregates data from Megatix, Ticketmelon, Resident Advisor, and manual at-door entries into a unified dashboard with real-time revenue projections and performance metrics.
 
-Built with [Better T Stack](https://github.com/AmanVarshney01/create-better-t-stack) — Next.js 15, Elysia, tRPC, Drizzle ORM, SQLite, Better Auth, and Bun.
+Built with [Better T Stack](https://github.com/AmanVarshney01/create-better-t-stack) — Next.js 16, Elysia, tRPC, Drizzle ORM, SQLite, Better Auth, and Bun.
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 15 (App Router), React 19, TailwindCSS 4, shadcn/ui |
+| Frontend | Next.js 16 (App Router), React 19, TailwindCSS 4, shadcn/ui |
 | Backend | Elysia, tRPC 11, Bun runtime |
 | Database | SQLite (Turso-compatible), Drizzle ORM |
 | Auth | Better Auth |
@@ -44,7 +44,7 @@ bun run dev
 ```
 overzeer/
 ├── apps/
-│   ├── web/              # Next.js 15 frontend
+│   ├── web/              # Next.js 16 frontend
 │   │   ├── src/app/      # App Router pages
 │   │   ├── src/components/
 │   │   └── src/utils/    # tRPC client
