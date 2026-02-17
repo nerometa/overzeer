@@ -6,7 +6,7 @@ services:
     container_name: overzeer-backend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${SERVER_PORT:-3000}:3000"
     env_file:
       - .env
     environment:
@@ -26,12 +26,9 @@ services:
     container_name: overzeer-frontend
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "${PORT:-3001}:3001"
     env_file:
       - .env
-    environment:
-      PORT: 3001
-      API_INTERNAL_URL: http://backend:3000
     depends_on:
       - backend
     networks:
