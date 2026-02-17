@@ -32,9 +32,6 @@ export default function Sidebar({
             </div>
             <div className="text-lg font-semibold tracking-tight">Overzeer</div>
           </div>
-          <Badge variant="secondary" className="rounded-none text-[10px]">
-            Phase 3
-          </Badge>
         </div>
       </div>
       <Separator className="bg-sidebar-border" />
