@@ -13,9 +13,9 @@ services:
       - .env
     environment:
       NODE_ENV: production
-      DATABASE_URL: file:/app/data/prod.db
+      DATABASE_URL: file:/app/data/local.db
     volumes:
-      - backend_data:/app/data
+      - ./backend/data:/app/data
     networks:
       - overzeer
 
@@ -37,10 +37,6 @@ services:
       - backend
     networks:
       - overzeer
-
-volumes:
-  backend_data:
-    driver: local
 
 networks:
   overzeer:
