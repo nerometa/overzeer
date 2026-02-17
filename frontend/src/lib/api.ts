@@ -1,7 +1,25 @@
 import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-const API_BASE = process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000";
+/**
+ * API URL resolution:
+ * 
+ * SERVER-SIDE (SSR): Uses Docker internal network
+ *   - API_INTERNAL_URL=http://backend:3000
+ * 
+ * CLIENT-SIDE (browser): Uses public URL
+ *   - NEXT_PUBLIC_SERVER_URL=https://api.overzeer.com
+ */
+const getApiBase = (): string => {
+  // Server-side (SSR, Server Actions, Route Handlers)
+  if (typeof window === "undefined") {
+    return process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000";
+  }
+  // Client-side (browser)
+  return process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000";
+};
+
+const API_BASE = getApiBase();
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
