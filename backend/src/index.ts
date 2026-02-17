@@ -73,8 +73,11 @@ export const app = new Elysia()
   )
   .get("/", () => ({ message: "Overzeer API v2.0", status: "ok" }))
   .get("/health", () => ({ status: "healthy" }))
-  .listen(env.SERVER_PORT, () => {
-    console.log(`🦊 Elysia server running at http://localhost:${env.SERVER_PORT}`);
+  .listen({
+    port: env.SERVER_PORT,
+    hostname: "0.0.0.0",
+  }, () => {
+    console.log(`🦊 Elysia server running at http://0.0.0.0:${env.SERVER_PORT}`);
   });
 
 export type App = typeof app;
