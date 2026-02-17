@@ -62,11 +62,14 @@ export const app = new Elysia()
     const userSession = requireAuth(session);
     return { user: userSession.user };
   })
-  .use(eventsRoutes)
-  .use(salesRoutes)
-  .use(platformsRoutes)
-  .use(analyticsRoutes)
-  .use(dashboardRoutes)
+  .group("/api", (app) =>
+    app
+      .use(eventsRoutes)
+      .use(salesRoutes)
+      .use(platformsRoutes)
+      .use(analyticsRoutes)
+      .use(dashboardRoutes)
+  )
   .get("/", () => ({ message: "Overzeer API v2.0", status: "ok" }))
   .get("/health", () => ({ status: "healthy" }))
   .listen(env.SERVER_PORT, () => {

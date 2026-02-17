@@ -21,7 +21,7 @@ async function assertEventOwnership(eventId: string, userId: string) {
   }
 }
 
-export const analyticsRoutes = new Elysia({ prefix: "/api/analytics" })
+export const analyticsRoutes = new Elysia({ prefix: "/analytics" })
   .use(authMiddleware)
   
   // GET /api/analytics/revenue?eventId=xxx

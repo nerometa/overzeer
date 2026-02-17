@@ -4,7 +4,7 @@ import { asc } from "drizzle-orm";
 
 const { platforms } = schema;
 
-export const platformsRoutes = new Elysia({ prefix: "/api/platforms" })
+export const platformsRoutes = new Elysia({ prefix: "/platforms" })
   // GET /api/platforms - list all platforms (public)
   .get(
     "/",

@@ -5,7 +5,7 @@ import { and, desc, eq } from "drizzle-orm";
 
 const { events, sales } = schema;
 
-export const salesRoutes = new Elysia({ prefix: "/api/sales" })
+export const salesRoutes = new Elysia({ prefix: "/sales" })
   .use(authMiddleware)
   
   // GET /api/sales?eventId=xxx - list sales for event

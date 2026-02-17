@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import { authMiddleware, requireAuth } from "../middleware/auth";
 import { getDashboardAnalytics } from "../services/analytics.service";
 
-export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
+export const dashboardRoutes = new Elysia({ prefix: "/dashboard" })
   .use(authMiddleware)
   
   // GET /api/dashboard - get dashboard overview
