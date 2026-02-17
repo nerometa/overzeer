@@ -50,13 +50,7 @@ export const app = new Elysia()
       message: env.NODE_ENV === "development" && error instanceof Error ? error.message : "Something went wrong",
     };
   })
-  .all("/api/auth/*", async (context) => {
-    const { request } = context;
-    if (["POST", "GET"].includes(request.method)) {
-      return auth.handler(request);
-    }
-    return new Response("Method not allowed", { status: 405 });
-  })
+  .mount("/api/auth", auth.handler)
   .use(authMiddleware)
   .get("/api/me", ({ session, set }) => {
     const userSession = requireAuth(session, set);
