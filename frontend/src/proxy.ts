@@ -8,7 +8,7 @@ import type { NextRequest } from "next/server";
  * Note: This is a client-side auth check using cookies.
  * For production, consider server-side session validation.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Only protect dashboard routes
