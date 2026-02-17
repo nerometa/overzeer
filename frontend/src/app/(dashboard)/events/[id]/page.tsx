@@ -29,27 +29,27 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const revenue = useQuery(analyticsApi.revenue({ params: { eventId: id } }));
   const velocity = useQuery(analyticsApi.velocity({ params: { eventId: id } }));
   const projections = useQuery(analyticsApi.projections({ params: { eventId: id } }));
-  const sales = useQuery(salesApi.byEvent({ params: { eventId: id } }));
+  const sales = useQuery(salesApi.listByEvent({ params: { eventId: id } }));
 
   const deleteMutation = useMutation({
     mutationFn: (saleId: string) => salesApi.delete(saleId),
     onMutate: async (saleId) => {
-      await queryClient.cancelQueries({ queryKey: ["sales", "byEvent", { eventId: id }] });
-      const previousSales = queryClient.getQueryData(["sales", "byEvent", { eventId: id }]);
-      queryClient.setQueryData(["sales", "byEvent", { eventId: id }], (old: Sale[] | undefined) =>
+      await queryClient.cancelQueries({ queryKey: ["sales", id] });
+      const previousSales = queryClient.getQueryData(["sales", id]);
+      queryClient.setQueryData(["sales", id], (old: Sale[] | undefined) =>
         old?.filter((s) => s.id !== saleId)
       );
       return { previousSales };
     },
     onError: (err, saleId, context) => {
       if (context?.previousSales) {
-        queryClient.setQueryData(["sales", "byEvent", { eventId: id }], context.previousSales);
+        queryClient.setQueryData(["sales", id], context.previousSales);
       }
       toast.error(err.message);
     },
     onSettled: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["sales", "byEvent", { eventId: id }] }),
+        queryClient.invalidateQueries({ queryKey: ["sales", id] }),
         queryClient.invalidateQueries({ queryKey: ["events", "byId", { id }] }),
         queryClient.invalidateQueries({ queryKey: ["dashboard", "overview"] }),
       ]);

@@ -8,8 +8,9 @@ export const dashboardRoutes = new Elysia({ prefix: "/dashboard" })
   // GET /api/dashboard - get dashboard overview
   .get(
     "/",
-    async ({ session }) => {
-      const userSession = requireAuth(session);
+    async ({ session, set }) => {
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
       return getDashboardAnalytics(userSession.user.id);
     },
     {

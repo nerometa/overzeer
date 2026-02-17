@@ -80,6 +80,12 @@ export type DashboardAnalytics = {
   }>;
 };
 
+export type ComprehensiveAnalytics = {
+  revenue: RevenueBreakdown;
+  velocity: SalesVelocity;
+  projections: Projections;
+};
+
 function normalizeTicketType(ticketType: string | null): string {
   return ticketType?.trim() ? ticketType : "Unknown";
 }
@@ -310,6 +316,16 @@ export async function getProjections(eventId: string): Promise<Projections> {
     confidenceLevel,
     asOf: asOf.toISOString(),
   };
+}
+
+export async function getComprehensiveAnalytics(eventId: string): Promise<ComprehensiveAnalytics> {
+  const [revenue, velocity, projections] = await Promise.all([
+    getRevenueBreakdown(eventId),
+    getSalesVelocity(eventId),
+    getProjections(eventId),
+  ]);
+
+  return { revenue, velocity, projections };
 }
 
 export async function getDashboardAnalytics(userId: string): Promise<DashboardAnalytics> {

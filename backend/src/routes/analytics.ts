@@ -6,6 +6,7 @@ import {
   getProjections,
   getRevenueBreakdown,
   getSalesVelocity,
+  getComprehensiveAnalytics,
 } from "../services/analytics.service";
 
 const { events } = schema;
@@ -28,7 +29,8 @@ export const analyticsRoutes = new Elysia({ prefix: "/analytics" })
   .get(
     "/revenue",
     async ({ query, session, set }) => {
-      const userSession = requireAuth(session);
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
       try {
         await assertEventOwnership(query.eventId, userSession.user.id);
         return await getRevenueBreakdown(query.eventId);
@@ -52,10 +54,12 @@ export const analyticsRoutes = new Elysia({ prefix: "/analytics" })
   .get(
     "/velocity",
     async ({ query, session, set }) => {
-      const userSession = requireAuth(session);
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
+      const { eventId } = query;
       try {
-        await assertEventOwnership(query.eventId, userSession.user.id);
-        return await getSalesVelocity(query.eventId);
+        await assertEventOwnership(eventId, userSession.user.id);
+        return await getSalesVelocity(eventId);
       } catch (error) {
         set.status = 404;
         return { error: "Event not found" };
@@ -76,10 +80,12 @@ export const analyticsRoutes = new Elysia({ prefix: "/analytics" })
   .get(
     "/projections",
     async ({ query, session, set }) => {
-      const userSession = requireAuth(session);
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
+      const { eventId } = query;
       try {
-        await assertEventOwnership(query.eventId, userSession.user.id);
-        return await getProjections(query.eventId);
+        await assertEventOwnership(eventId, userSession.user.id);
+        return await getProjections(eventId);
       } catch (error) {
         set.status = 404;
         return { error: "Event not found" };
@@ -100,25 +106,9 @@ export const analyticsRoutes = new Elysia({ prefix: "/analytics" })
   .get(
     "/comprehensive",
     async ({ query, session, set }) => {
-      const userSession = requireAuth(session);
-      try {
-        await assertEventOwnership(query.eventId, userSession.user.id);
-
-        const [revenue, velocity, projections] = await Promise.all([
-          getRevenueBreakdown(query.eventId),
-          getSalesVelocity(query.eventId),
-          getProjections(query.eventId),
-        ]);
-
-        return {
-          revenue,
-          velocity,
-          projections,
-        };
-      } catch (error) {
-        set.status = 404;
-        return { error: "Event not found" };
-      }
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
+      return getComprehensiveAnalytics(query.eventId);
     },
     {
       query: t.Object({

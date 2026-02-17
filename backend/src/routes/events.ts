@@ -11,8 +11,9 @@ export const eventsRoutes = new Elysia({ prefix: "/events" })
   // GET /api/events - list all events
   .get(
     "/",
-    async ({ session }) => {
-      const userSession = requireAuth(session);
+    async ({ session, set }) => {
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
       return db.query.events.findMany({
         where: eq(events.userId, userSession.user.id),
         orderBy: desc(events.updatedAt),
@@ -30,7 +31,8 @@ export const eventsRoutes = new Elysia({ prefix: "/events" })
   .get(
     "/:id",
     async ({ params, session, set }) => {
-      const userSession = requireAuth(session);
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
       const event = await db.query.events.findFirst({
         where: and(
           eq(events.id, params.id),
@@ -69,7 +71,8 @@ export const eventsRoutes = new Elysia({ prefix: "/events" })
   .post(
     "/",
     async ({ body, session, set }) => {
-      const userSession = requireAuth(session);
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
       const [created] = await db
         .insert(events)
         .values({
@@ -107,7 +110,8 @@ export const eventsRoutes = new Elysia({ prefix: "/events" })
   .patch(
     "/:id",
     async ({ params, body, session, set }) => {
-      const userSession = requireAuth(session);
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
       const { id } = params;
 
       const updateValues: Partial<typeof events.$inferInsert> = {
@@ -154,7 +158,8 @@ export const eventsRoutes = new Elysia({ prefix: "/events" })
   .delete(
     "/:id",
     async ({ params, session, set }) => {
-      const userSession = requireAuth(session);
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
       const [deleted] = await db
         .delete(events)
         .where(and(eq(events.id, params.id), eq(events.userId, userSession.user.id)))

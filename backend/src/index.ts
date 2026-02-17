@@ -58,8 +58,9 @@ export const app = new Elysia()
     return new Response("Method not allowed", { status: 405 });
   })
   .use(authMiddleware)
-  .get("/api/me", ({ session }) => {
-    const userSession = requireAuth(session);
+  .get("/api/me", ({ session, set }) => {
+    const userSession = requireAuth(session, set);
+    if (!userSession) return { error: "Unauthorized" };
     return { user: userSession.user };
   })
   .group("/api", (app) =>

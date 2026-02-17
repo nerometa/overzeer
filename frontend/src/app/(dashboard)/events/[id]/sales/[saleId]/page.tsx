@@ -18,7 +18,7 @@ export default function EditSalePage({
   const { id, saleId } = use(params);
   
   const event = useQuery(eventsApi.byId({ params: { id } }));
-  const sales = useQuery(salesApi.byEvent({ params: { eventId: id } }));
+  const sales = useQuery(salesApi.listByEvent({ params: { eventId: id } }));
   
   const sale = sales.data?.find((s) => s.id === saleId);
   

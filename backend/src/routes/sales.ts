@@ -8,11 +8,12 @@ const { events, sales } = schema;
 export const salesRoutes = new Elysia({ prefix: "/sales" })
   .use(authMiddleware)
   
-  // GET /api/sales?eventId=xxx - list sales for event
+  // GET /api/sales?eventId=xxx - list sales for an event
   .get(
     "/",
     async ({ query, session, set }) => {
-      const userSession = requireAuth(session);
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
       const { eventId } = query;
 
       if (!eventId) {
@@ -54,7 +55,8 @@ export const salesRoutes = new Elysia({ prefix: "/sales" })
   .post(
     "/",
     async ({ body, session, set }) => {
-      const userSession = requireAuth(session);
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
       
       const event = await db.query.events.findFirst({
         where: and(
@@ -109,10 +111,12 @@ export const salesRoutes = new Elysia({ prefix: "/sales" })
   .patch(
     "/:id",
     async ({ params, body, session, set }) => {
-      const userSession = requireAuth(session);
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
+      const { id } = params;
 
       const existing = await db.query.sales.findFirst({
-        where: eq(sales.id, params.id),
+        where: eq(sales.id, id),
         with: { event: { columns: { userId: true } } },
         columns: { id: true },
       });
@@ -129,10 +133,17 @@ export const salesRoutes = new Elysia({ prefix: "/sales" })
       if (body.pricePerTicket !== undefined) updateData.pricePerTicket = body.pricePerTicket;
       if (body.fees !== undefined) updateData.fees = body.fees;
 
+      if (Object.keys(updateData).length === 0) {
+        set.status = 400;
+        return { error: "No fields provided for update" };
+      }
+
+      updateData.syncedAt = new Date();
+
       const [updated] = await db
         .update(sales)
         .set(updateData)
-        .where(eq(sales.id, params.id))
+        .where(eq(sales.id, id))
         .returning();
 
       if (!updated) {
@@ -164,19 +175,8 @@ export const salesRoutes = new Elysia({ prefix: "/sales" })
   .delete(
     "/:id",
     async ({ params, session, set }) => {
-      const userSession = requireAuth(session);
-
-      const existing = await db.query.sales.findFirst({
-        where: eq(sales.id, params.id),
-        with: { event: { columns: { userId: true } } },
-        columns: { id: true },
-      });
-
-      if (!existing || existing.event?.userId !== userSession.user.id) {
-        set.status = 404;
-        return { error: "Sale not found" };
-      }
-
+      const userSession = requireAuth(session, set);
+      if (!userSession) return { error: "Unauthorized" };
       await db.delete(sales).where(eq(sales.id, params.id));
 
       return { success: true };

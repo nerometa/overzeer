@@ -86,10 +86,6 @@ export const salesApi = {
     queryKey: ["sales", eventId],
     queryFn: () => fetchAPI<Sale[]>(`/api/sales?eventId=${eventId}`),
   }),
-  byEvent: ({ params: { eventId } }: { params: { eventId: string } }) => ({
-    queryKey: ["sales", eventId],
-    queryFn: () => fetchAPI<Sale[]>(`/api/sales?eventId=${eventId}`),
-  }),
   create: (data: CreateSaleInput) =>
     fetchAPI<Sale>('/api/sales', {
       method: 'POST',
