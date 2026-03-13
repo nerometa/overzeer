@@ -7,9 +7,6 @@ RUN bun install --frozen-lockfile
 
 COPY . .
 
-ARG NEXT_PUBLIC_SERVER_URL
-ENV NEXT_PUBLIC_SERVER_URL=$NEXT_PUBLIC_SERVER_URL
-
 RUN bun run build
 
 # Production stage

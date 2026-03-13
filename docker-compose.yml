@@ -21,16 +21,15 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:-http://localhost:3000}
     container_name: overzeer-frontend
     restart: unless-stopped
     ports:
       - "${PORT:-3001}:3001"
-    env_file:
-      - .env
     environment:
       PORT: 3001
+      NODE_ENV: production
+      # Internal Docker URL — Next.js server-side uses this to reach the backend.
+      # Do NOT change this; "backend" is the Docker service name above.
       API_INTERNAL_URL: http://backend:3000
     depends_on:
       - backend

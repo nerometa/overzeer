@@ -3,20 +3,23 @@ import { toast } from "sonner";
 
 /**
  * API URL resolution:
- * 
- * SERVER-SIDE (SSR): Uses Docker internal network
+ *
+ * SERVER-SIDE (SSR): Uses Docker internal network directly for speed.
  *   - API_INTERNAL_URL=http://backend:3000
- * 
- * CLIENT-SIDE (browser): Uses public URL
- *   - NEXT_PUBLIC_SERVER_URL=https://api.overzeer.com
+ *
+ * CLIENT-SIDE (browser): Uses relative URL "" so requests stay on the
+ *   same origin (the frontend). The Next.js catch-all proxy at
+ *   /api/[...slug] forwards them to the backend internally.
+ *   No NEXT_PUBLIC_SERVER_URL needed at runtime — only the domain of
+ *   the frontend matters, and browsers already know that.
  */
 const getApiBase = (): string => {
   // Server-side (SSR, Server Actions, Route Handlers)
   if (typeof window === "undefined") {
-    return process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000";
+    return process.env.API_INTERNAL_URL ?? "http://backend:3000";
   }
-  // Client-side (browser)
-  return process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000";
+  // Client-side: relative URL — always hits the current origin (frontend)
+  return "";
 };
 
 const API_BASE = getApiBase();
