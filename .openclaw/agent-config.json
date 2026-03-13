@@ -1,0 +1,10 @@
+{
+  "ultrawork_enabled": false,
+  "note": "Only the operator can enable ultrawork, explicitly, per-session.",
+  "agent_routing": {
+    "complex_backend_refactor_bugs": "hephaestus",
+    "planning_scoping": "prometheus",
+    "default": "sisyphus"
+  },
+  "post_feature_skills": ["code-reviewer", "refactor"]
+}

@@ -55,3 +55,6 @@ local.db
 .cache
 tmp
 temp
+# OpenClaw
+.openclaw/active-tasks.json
+.worktrees/
