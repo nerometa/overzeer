@@ -6,12 +6,9 @@ services:
     container_name: overzeer-backend
     restart: unless-stopped
     ports:
-      - "${SERVER_PORT:-3000}:3000"
+      - "3000:3000"
     env_file:
       - .env
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: file:/app/data/local.db
     volumes:
       - ./backend/data:/app/data
     networks:
@@ -24,13 +21,9 @@ services:
     container_name: overzeer-frontend
     restart: unless-stopped
     ports:
-      - "${PORT:-3001}:3001"
+      - "3001:3001"
     environment:
       PORT: 3001
-      NODE_ENV: production
-      # Internal Docker URL — Next.js server-side uses this to reach the backend.
-      # Do NOT change this; "backend" is the Docker service name above.
-      API_INTERNAL_URL: http://backend:3000
     depends_on:
       - backend
     networks:
