@@ -2,8 +2,12 @@ import { z } from "zod";
 import { config } from "dotenv";
 import { resolve } from "path";
 
-// Load .env from project root
-config({ path: resolve(process.cwd(), ".env") });
+// Skip env loading during Next.js build (build runs before .env is mounted)
+const isBuildTime = process.argv.some((arg) => arg.includes("next build"));
+
+if (!isBuildTime) {
+  config({ path: resolve(process.cwd(), ".env") });
+}
 
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
@@ -17,7 +21,7 @@ const envSchema = z.object({
 
 const parsed = envSchema.safeParse(process.env);
 
-if (!parsed.success) {
+if (!parsed.success && !isBuildTime) {
   console.error("❌ Invalid environment variables:");
   parsed.error.issues.forEach((issue) => {
     console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
@@ -25,4 +29,12 @@ if (!parsed.success) {
   process.exit(1);
 }
 
-export const env = parsed.data;
+// During build, provide dummy values to allow build to succeed
+const buildEnv = {
+  DATABASE_URL: "file:./data/local.db",
+  BETTER_AUTH_SECRET: "build-time-dummy-secret-min-32-chars",
+  BETTER_AUTH_URL: "http://localhost:3000",
+  NODE_ENV: "production",
+};
+
+export const env = isBuildTime ? buildEnv : parsed.data;
