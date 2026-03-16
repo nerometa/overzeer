@@ -58,7 +58,7 @@ tmp
 temp
 
 # OpenClaw
-.openclaw/
+.openclaw
 
 # Git Worktrees
 .worktrees/

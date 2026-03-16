@@ -13,6 +13,7 @@ RUN bun install --frozen-lockfile
 
 # Copy source code (exclude .env - will be provided at runtime)
 COPY src/ ./src/
+COPY tsconfig.json ./
 COPY next.config.ts ./
 COPY postcss.config.mjs ./
 COPY components.json ./
