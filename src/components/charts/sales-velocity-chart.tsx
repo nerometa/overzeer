@@ -1,9 +1,9 @@
 "use client";
 
 import {
+  Bar,
+  BarChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -11,46 +11,39 @@ import {
 } from "recharts";
 
 import ChartShell from "@/components/charts/chart-shell";
-import { formatCurrency } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 
-type Point = { date: string; revenue: number };
+type Point = { date: string; ticketsSold: number };
 
 const LABEL_MAP: Record<string, string> = {
-  revenue: "Revenue",
+  ticketsSold: "Tickets Sold",
 };
 
-export default function RevenueChart({
-  title = "Revenue",
+export default function SalesVelocityChart({
+  title = "Sales velocity",
   data,
 }: {
   title?: string;
   data: Point[];
 }) {
   return (
-    <ChartShell title={title} description="Gross revenue over time">
+    <ChartShell title={title} description="Tickets sold per day">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ left: 6, right: 10, top: 6, bottom: 0 }}>
+        <BarChart data={data} margin={{ left: 6, right: 10, top: 6, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" opacity={0.25} />
-          <XAxis
-            dataKey="date"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            fontSize={12}
-          />
+          <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
           <YAxis
             tickLine={false}
             axisLine={false}
             tickMargin={8}
             fontSize={12}
-            width={56}
-            tickFormatter={(v) => (typeof v === "number" ? `${Math.round(v / 1000)}k` : String(v))}
+            width={46}
+            tickFormatter={(v) => (typeof v === "number" ? formatNumber(v) : String(v))}
           />
           <Tooltip
-            cursor={{ stroke: "hsl(var(--border))" }}
-            formatter={(v: unknown, name?: string) => [
-              typeof v === "number" ? formatCurrency(v) : String(v),
-              name ? (LABEL_MAP[name] ?? name) : "",
+            formatter={(v, name) => [
+              typeof v === "number" ? formatNumber(v) : String(v),
+              name ? (LABEL_MAP[String(name)] ?? String(name)) : "",
             ]}
             labelFormatter={(label) => `Date: ${String(label)}`}
             labelStyle={{ color: "hsl(var(--popover-foreground))" }}
@@ -65,14 +58,8 @@ export default function RevenueChart({
               color: "hsl(var(--popover-foreground))",
             }}
           />
-          <Line
-            type="monotone"
-            dataKey="revenue"
-            stroke="hsl(var(--chart-2))"
-            strokeWidth={2}
-            dot={false}
-          />
-        </LineChart>
+          <Bar dataKey="ticketsSold" fill="hsl(var(--chart-1))" radius={0} />
+        </BarChart>
       </ResponsiveContainer>
     </ChartShell>
   );
