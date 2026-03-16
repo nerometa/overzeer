@@ -35,6 +35,10 @@ const buildEnv = {
   BETTER_AUTH_SECRET: "build-time-dummy-secret-min-32-chars",
   BETTER_AUTH_URL: "http://localhost:3000",
   NODE_ENV: "production",
+  CORS_ORIGIN: undefined,
+  SERVER_PORT: 3000,
+  NEXT_PUBLIC_API_URL: undefined,
 };
 
-export const env = isBuildTime ? buildEnv : parsed.data;
+const runtimeEnv = parsed.success ? parsed.data : buildEnv;
+export const env = isBuildTime ? buildEnv : runtimeEnv;
