@@ -42,6 +42,7 @@ lerna-debug.log*
 # Testing
 coverage
 .nyc_output
+test-results
 
 # SQLite
 *.db
@@ -61,3 +62,7 @@ temp
 
 # Git Worktrees
 .worktrees/
+.next/
+.sisyphus/
+node_modules/
+*.log

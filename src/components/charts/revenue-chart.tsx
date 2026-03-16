@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  Area,
-  AreaChart,
   CartesianGrid,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -13,33 +13,31 @@ import {
 import ChartShell from "@/components/charts/chart-shell";
 import { formatCurrency } from "@/lib/format";
 
-type Point = { date: string; projectedRevenue: number };
+type Point = { date: string; revenue: number };
 
 const LABEL_MAP: Record<string, string> = {
-  projectedRevenue: "Projected Revenue",
+  revenue: "Revenue",
 };
 
-export default function ProjectionChart({
-  title = "Projections",
+export default function RevenueChart({
+  title = "Revenue",
   data,
-  note,
 }: {
   title?: string;
   data: Point[];
-  note?: string;
 }) {
   return (
-    <ChartShell title={title} description={note ?? "Projected revenue curve"}>
+    <ChartShell title={title} description="Gross revenue over time">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ left: 6, right: 10, top: 6, bottom: 0 }}>
-          <defs>
-            <linearGradient id="projFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.05} />
-            </linearGradient>
-          </defs>
+        <LineChart data={data} margin={{ left: 6, right: 10, top: 6, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" opacity={0.25} />
-          <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
+          <XAxis
+            dataKey="date"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            fontSize={12}
+          />
           <YAxis
             tickLine={false}
             axisLine={false}
@@ -49,9 +47,10 @@ export default function ProjectionChart({
             tickFormatter={(v) => (typeof v === "number" ? `${Math.round(v / 1000)}k` : String(v))}
           />
           <Tooltip
-            formatter={(v: unknown, name?: string) => [
+            cursor={{ stroke: "hsl(var(--border))" }}
+            formatter={(v, name) => [
               typeof v === "number" ? formatCurrency(v) : String(v),
-              name ? (LABEL_MAP[name] ?? name) : "",
+              name ? (LABEL_MAP[String(name)] ?? String(name)) : "",
             ]}
             labelFormatter={(label) => `Date: ${String(label)}`}
             labelStyle={{ color: "hsl(var(--popover-foreground))" }}
@@ -66,14 +65,14 @@ export default function ProjectionChart({
               color: "hsl(var(--popover-foreground))",
             }}
           />
-          <Area
+          <Line
             type="monotone"
-            dataKey="projectedRevenue"
-            stroke="hsl(var(--chart-3))"
-            fill="url(#projFill)"
+            dataKey="revenue"
+            stroke="hsl(var(--chart-2))"
             strokeWidth={2}
+            dot={false}
           />
-        </AreaChart>
+        </LineChart>
       </ResponsiveContainer>
     </ChartShell>
   );

@@ -21,7 +21,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "cd /home/vergil/codevault/overzeer && bun run dev",
+    command: "bun run dev",
     url: "http://localhost:3001",
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

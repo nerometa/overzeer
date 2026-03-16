@@ -3,15 +3,16 @@ import { config } from "dotenv";
 import { resolve } from "path";
 
 // Load .env from project root
-config({ path: resolve(process.cwd(), "../.env") });
+config({ path: resolve(process.cwd(), ".env") });
 
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.string().url(),
-  CORS_ORIGIN: z.string().url(),
+  CORS_ORIGIN: z.string().url().optional(),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  SERVER_PORT: z.string().transform((val) => parseInt(val, 10)).default(3000),
+  SERVER_PORT: z.string().transform((val) => parseInt(val, 10)).optional().default(3000),
+  NEXT_PUBLIC_API_URL: z.string().url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
