@@ -42,7 +42,7 @@ lerna-debug.log*
 # Testing
 coverage
 .nyc_output
-test-results
+test-results/
 
 # SQLite
 *.db
@@ -58,7 +58,7 @@ tmp
 temp
 
 # OpenClaw
-.openclaw
+.openclaw/
 
 # Git Worktrees
 .worktrees/
